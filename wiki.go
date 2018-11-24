@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
 )
 
 type Page struct {
 	Title string
-	Body []byte
+	Body  []byte
 }
 
 func (p *Page) save() error {
@@ -21,39 +21,39 @@ func loadPage(title string) (*Page, error) {
 	filename := title + ".txt"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, err	
+		return nil, err
 	}
 	return &Page{Title: title, Body: body}, nil
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request)  {
+func saveHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/save/"):]
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
 	p.save()
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request)  {
+func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/view/"):]
 	p, _ := loadPage(title)
 	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request)  {
+func editHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/edit/"):]
 	p, err := loadPage(title)
 	if err != nil {
 		p = &Page{Title: title}
 	}
 	fmt.Fprintf(w, "<h1>Editing %s</h1>"+
-        "<form action=\"/save/%s\" method=\"POST\">"+
-        "<textarea name=\"body\">%s</textarea><br>"+
-        "<input type=\"submit\" value=\"Save\">"+
-        "</form>",
-        p.Title, p.Title, p.Body)
+		"<form action=\"/save/%s\" method=\"POST\">"+
+		"<textarea name=\"body\">%s</textarea><br>"+
+		"<input type=\"submit\" value=\"Save\">"+
+		"</form>",
+		p.Title, p.Title, p.Body)
 }
 
-func main()  {
+func main() {
 	http.HandleFunc("/save/", saveHandler)
 	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc("/edit/", editHandler)
