@@ -1,0 +1,41 @@
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+type data struct {
+	sync.Mutex
+}
+
+func (d data) test(s string) {
+	fmt.Printf("s:=%p,%v", &d, d)
+	d.Lock()
+	defer d.Unlock()
+
+	for i := 0; i < 5; i++ {
+		println(s, i)
+		time.Sleep(time.Second)
+	}
+}
+
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	var d data
+
+	go func() {
+		defer wg.Done()
+		d.test("read")
+	}()
+
+	go func() {
+		defer wg.Done()
+		d.test("write")
+	}()
+
+	wg.Wait()
+}
